@@ -1,9 +1,11 @@
 import numpy as np
+from activations import sigmoid, sigmoid_backward
+from activations import relu, relu_backward
 
 
 class Conv:
 
-    def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=1):
+    def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=1, activation = 'relu'):
         if kernel % 2 == 0:
             raise ValueError('kernel cannot be even')
         self.batch_size = input_shape[0]
@@ -20,6 +22,14 @@ class Conv:
         self.output_width = int(1 + ((self.input_width - kernel + 2 * padding) / stride))
         self.output_shape = (self.batch_size, self.output_height, self.output_width, self.n_filters)
         self.prev_act = np.zeros(input_shape)
+        if activation == 'relu':
+            self.activation_fn = relu
+            self.backward_activation_fn = relu_backward
+        elif activation == 'sigmoid':
+            self.activation_fn = sigmoid
+            self.backward_activation_fn = sigmoid_backward
+        else:
+            raise Exception('Activation function not supported')
 
     def convolution(self, receptive_field, W, b):
         W = np.rot90(W, 2)
@@ -53,10 +63,10 @@ class Conv:
                         Z[m, h, w, c] = self.convolution(receptive_field, self.weights[:, :, :, c], self.bias[:, :, :, c])
 
         self.prev_act = prev_act.copy()
-        return Z
+        return self.activation_fn(Z)
 
     def backprop(self, dZ, learning_rate = 0.01):
-
+        dZ = self.backward_activation_fn(dZ, self.prev_act)
         prev_dA = np.zeros((self.batch_size, self.input_height, self.input_width, self.input_channels))
 
         dW = np.zeros((self.kernel, self.kernel, self.input_channels, self.n_filters))
