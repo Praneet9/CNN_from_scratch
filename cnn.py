@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Conv():
+class Conv:
 
     def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=1):
         if kernel % 2 == 0:
@@ -18,7 +18,8 @@ class Conv():
         self.n_filters = n_filters
         self.output_height = int(1 + ((self.input_height - kernel + 2 * padding) / stride))
         self.output_width = int(1 + ((self.input_width - kernel + 2 * padding) / stride))
-        self.prev_act = np.zeros((self.batch_size, self.input_height, self.input_width, self.input_channels))
+        self.output_shape = (self.batch_size, self.output_height, self.output_width, self.n_filters)
+        self.prev_act = np.zeros(input_shape)
 
     def convolution(self, receptive_field, W, b):
         W = np.rot90(W, 2)
@@ -37,7 +38,7 @@ class Conv():
 
     def forward(self, prev_act):
 
-        Z = np.zeros((self.batch_size, self.output_height, self.output_width, self.n_filters))
+        Z = np.zeros(self.output_shape)
         padded_batch = self.add_padding(prev_act)
         for m in range(self.batch_size):
             image_padded = padded_batch[m]

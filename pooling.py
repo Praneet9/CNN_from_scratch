@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Pooling():
+class Pooling:
 
     def __init__(self, input_shape, pooling_type='max', stride=2, kernel=2):
 
@@ -15,11 +15,12 @@ class Pooling():
         self.output_height = int(1 + ((self.input_height - kernel) / stride))
         self.output_width = int(1 + ((self.input_width - kernel) / stride))
         self.kernel = kernel
-        self.prev_act = np.zeros((self.batch_size, self.input_height, self.input_width, self.input_channels))
+        self.output_shape = (self.batch_size, self.output_height, self.output_width, self.output_channels)
+        self.prev_act = np.zeros(input_shape)
 
     def forward(self, prev_act):
         prev_act = np.array(prev_act)
-        activation = np.zeros((self.batch_size, self.output_height, self.output_width, self.output_channels))
+        activation = np.zeros(self.output_shape)
 
         for m in range(self.batch_size):
             image = prev_act[m]
