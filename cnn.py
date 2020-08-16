@@ -6,10 +6,10 @@ class Conv():
     def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=1):
         if kernel % 2 == 0:
             raise ValueError('kernel cannot be even')
-        self.batch_size = input_shape.shape[0]
-        self.input_height = input_shape.shape[1]
-        self.input_width = input_shape.shape[2]
-        self.input_channels = input_shape.shape[3]
+        self.batch_size = input_shape[0]
+        self.input_height = input_shape[1]
+        self.input_width = input_shape[2]
+        self.input_channels = input_shape[3]
         self.kernel = kernel
         self.stride = stride
         self.padding = padding
@@ -39,10 +39,10 @@ class Conv():
 
         Z = np.zeros((self.batch_size, self.output_height, self.output_width, self.n_filters))
         padded_batch = self.add_padding(prev_act)
-        for m in self.batch_size:
+        for m in range(self.batch_size):
             image_padded = padded_batch[m]
-            for h in range(self.input_height):
-                for w in range(self.input_width):
+            for h in range(self.output_height):
+                for w in range(self.output_width):
                     for c in range(self.n_filters):
                         vertical_start = h*self.stride
                         horizontal_start = w*self.stride
