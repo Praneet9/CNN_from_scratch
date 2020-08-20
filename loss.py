@@ -1,21 +1,23 @@
 import numpy as np
 
-def bce_cost(Y, Z):
+def binary_cross_entropy(Y, P_hat):
     """
-    This function computes the "Stable" Binary Cross-Entropy(stable_bce) Cost and returns the Cost and its
-    derivative w.r.t Z_last(the last linear node) .
-    The Stable Binary Cross-Entropy Cost is defined as:
-    => (1/m) * np.sum(max(Z,0) - ZY + log(1+exp(-|Z|)))
+    This function computes Binary Cross-Entropy(bce) Cost and returns the Cost and its
+    derivative.
+    This function uses the following Binary Cross-Entropy Cost defined as:
+    => (1/m) * np.sum(-Y*np.log(P_hat) - (1-Y)*np.log(1-P_hat))
     Args:
         Y: labels of data
-        Z: Values from the last linear node
+        P_hat: Estimated output probabilities from the last layer, the output layer
     Returns:
-        cost: The "Stable" Binary Cross-Entropy Cost result
-        dZ_last: gradient of Cost w.r.t Z_last
+        cost: The Binary Cross-Entropy Cost result
+        dP_hat: gradient of Cost w.r.t P_hat
     """
-    m = Y.shape[1]
+    m = Y.shape[1]  # m -> number of examples in the batch
 
-    cost = (1/m) * np.sum(np.maximum(Z, 0) - Z*Y + np.log(1+ np.exp(- np.abs(Z))))
-    dZ_last = (1/m) * ((1/(1+np.exp(- Z))) - Y)  # from Z computes the Sigmoid so P_hat - Y, where P_hat = sigma(Z)
+    cost = (1/m) * np.sum(-Y*np.log(P_hat) - (1-Y)*np.log(1-P_hat))
+    cost = np.squeeze(cost)
 
-    return cost, dZ_last
+    dP_hat = (1/m) * (-(Y/P_hat) + ((1-Y)/(1-P_hat)))
+
+    return cost, dP_hat
