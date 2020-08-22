@@ -1,11 +1,13 @@
 import numpy as np
 from activations import sigmoid, sigmoid_backward
 from activations import relu, relu_backward
+from weights_initializers import init_weights
 
 
 class Conv:
 
-    def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=1, activation = 'relu'):
+    def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=1, activation='relu',
+                 weights='glorot_uniform', bias='zeros', weights_scale=0.05, bias_scale=0.05):
         if kernel % 2 == 0:
             raise ValueError('kernel cannot be even')
         self.batch_size = input_shape[0]
@@ -15,9 +17,9 @@ class Conv:
         self.kernel = kernel
         self.stride = stride
         self.padding = padding
-        # self.weights = np.random.rand(kernel, kernel, input_shape[-1], n_filters)
-        self.weights = np.random.uniform(-1, 1, (kernel, kernel, input_shape[-1], n_filters))
-        self.bias = np.random.rand(1, 1, 1, n_filters)
+        self.weights = init_weights(weights, shape=(kernel, kernel, input_shape[-1], n_filters),
+                                   scale=weights_scale)
+        self.bias = init_weights(bias, shape=(1, 1, 1, n_filters), scale=bias_scale)
         self.n_filters = n_filters
         self.output_height = int(1 + ((self.input_height - kernel + 2 * padding) / stride))
         self.output_width = int(1 + ((self.input_width - kernel + 2 * padding) / stride))
