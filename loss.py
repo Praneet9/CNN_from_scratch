@@ -14,10 +14,13 @@ def binary_cross_entropy(Y, P_hat):
         dP_hat: gradient of Cost w.r.t P_hat
     """
     m = Y.shape[1]  # m -> number of examples in the batch
+    Y = Y.T
+    EPSILON = 1e-07
+    P_MAX = 1 - EPSILON  # 0.9999999
 
-    cost = (1/m) * np.sum(-Y*np.log(P_hat) - (1-Y)*np.log(1-P_hat))
+    P_hat = np.clip(P_hat, a_min=EPSILON, a_max=P_MAX)
+    cost = (1/m) * np.nansum(-Y*np.log(P_hat) - (1-Y)*np.log(1-P_hat))
     cost = np.squeeze(cost)
 
     dP_hat = (1/m) * (-(Y/P_hat) + ((1-Y)/(1-P_hat)))
-
     return cost, dP_hat

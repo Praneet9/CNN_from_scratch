@@ -15,13 +15,14 @@ class Conv:
         self.kernel = kernel
         self.stride = stride
         self.padding = padding
-        self.weights = np.random.rand(kernel, kernel, input_shape[-1], n_filters)
+        # self.weights = np.random.rand(kernel, kernel, input_shape[-1], n_filters)
+        self.weights = np.random.uniform(-1, 1, (kernel, kernel, input_shape[-1], n_filters))
         self.bias = np.random.rand(1, 1, 1, n_filters)
         self.n_filters = n_filters
         self.output_height = int(1 + ((self.input_height - kernel + 2 * padding) / stride))
         self.output_width = int(1 + ((self.input_width - kernel + 2 * padding) / stride))
         self.output_shape = (self.batch_size, self.output_height, self.output_width, self.n_filters)
-        self.prev_act = np.zeros(input_shape)
+        self.prev_act = np.zeros(input_shape, dtype=np.float32)
         if activation == 'relu':
             self.activation_fn = relu
             self.backward_activation_fn = relu_backward
@@ -63,10 +64,11 @@ class Conv:
                         Z[m, h, w, c] = self.convolution(receptive_field, self.weights[:, :, :, c], self.bias[:, :, :, c])
 
         self.prev_act = prev_act.copy()
-        return self.activation_fn(Z)
+        self.A = self.activation_fn(Z)
+        return self.A
 
-    def backprop(self, dZ, learning_rate = 0.01):
-        dZ = self.backward_activation_fn(dZ, self.prev_act)
+    def backprop(self, dA, learning_rate = 0.01):
+        dA = self.backward_activation_fn(dA, self.A)
         prev_dA = np.zeros((self.batch_size, self.input_height, self.input_width, self.input_channels))
 
         dW = np.zeros((self.kernel, self.kernel, self.input_channels, self.n_filters))
@@ -89,9 +91,9 @@ class Conv:
 
                         receptive_field = prev_act_pad[vertical_start:vertical_end, horizontal_start:horizontal_end]
                         prev_dA_pad[vertical_start:vertical_end,
-                                    horizontal_start:horizontal_end, :] += self.weights[:, :, :, c] * dZ[m, h, w, c]
-                        dW[:, :, :, c] += receptive_field * dZ[m, h, w, c]
-                        db[:, :, :, c] += dZ[m, h, w, c]
+                                    horizontal_start:horizontal_end, :] += self.weights[:, :, :, c] * dA[m, h, w, c]
+                        dW[:, :, :, c] += receptive_field * dA[m, h, w, c]
+                        db[:, :, :, c] += dA[m, h, w, c]
 
             prev_dA[m, :, :, :] = prev_dA_pad if self.padding == 0 else prev_dA_pad[self.padding:-self.padding,
                                                                                     self.padding:-self.padding, :]

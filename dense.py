@@ -10,9 +10,11 @@ class Dense:
         self.input_units = input_shape[1]
         self.output_units = units
         self.output_shape = (self.batch_size, self.output_units)
-        self.weights = np.random.rand(self.input_units, self.output_units)
-        self.bias = np.random.rand(1, self.output_units)
-        self.prev_act = np.zeros((self.batch_size, self.output_units))
+        self.weights = np.random.uniform(-1, 1, (self.input_units, self.output_units))
+        self.weights = np.array(self.weights, np.float32)
+        self.bias = np.zeros((1, self.output_units))
+        self.prev_act = np.zeros((self.batch_size, self.output_units), dtype=np.float32)
+        self.A = None
         if activation == 'relu':
             self.activation_fn = relu
             self.backward_activation_fn = relu_backward
@@ -24,14 +26,15 @@ class Dense:
 
     def forward(self, prev_act):
         self.prev_act = prev_act.copy()
-        return self.activation_fn(np.dot(prev_act, self.weights) + self.bias)
+        self.A = self.activation_fn(np.dot(prev_act, self.weights) + self.bias)
+        return self.A
 
-    def backprop(self, dZ, learning_rate = 0.01):
-        dZ = self.backward_activation_fn(dZ, self.prev_act)
-        dW = np.dot(self.prev_act.T, dZ)
-        db = dZ.mean(axis=0, keepdims=True)
+    def backprop(self, dA, learning_rate = 0.01):
+        dA = self.backward_activation_fn(dA, self.A)
+        dW = np.dot(self.prev_act.T, dA) / self.batch_size
+        db = dA.mean(axis=0, keepdims=True) / self.batch_size
 
-        prev_dA = np.dot(dZ, self.weights.T)
+        prev_dA = np.dot(dA, self.weights.T)
 
         self.weights -= learning_rate * dW
         self.bias -= learning_rate * db
