@@ -9,15 +9,14 @@ class Dense:
     def __init__(self, input_shape, units, activation='relu', weights='glorot_uniform',
                  bias='zeros', weights_scale=0.05, bias_scale=0.05):
 
-        self.batch_size = input_shape[0]
-        self.input_units = input_shape[1]
+        self.input_units = input_shape[-1]
         self.output_units = units
-        self.output_shape = (self.batch_size, self.output_units)
+        self.output_shape = (None, self.output_units)
         self.weights = init_weights(weights, shape=(self.input_units, self.output_units),
                                     scale=weights_scale)
         self.weights = np.array(self.weights, np.float32)
         self.bias = init_weights(bias, shape=(1, self.output_units), scale=bias_scale)
-        self.prev_act = np.zeros((self.batch_size, self.output_units), dtype=np.float32)
+        self.prev_act = None
         self.A = None
         if activation == 'relu':
             self.activation_fn = relu
@@ -33,10 +32,12 @@ class Dense:
         self.A = self.activation_fn(np.dot(prev_act, self.weights) + self.bias)
         return self.A
 
-    def backprop(self, dA, learning_rate = 0.01):
+    def backprop(self, dA, learning_rate=0.01):
+        batch_size = dA.shape[0]
+
         dA = self.backward_activation_fn(dA, self.A)
-        dW = np.dot(self.prev_act.T, dA) / self.batch_size
-        db = dA.mean(axis=0, keepdims=True) / self.batch_size
+        dW = np.dot(self.prev_act.T, dA) / batch_size
+        db = dA.mean(axis=0, keepdims=True) / batch_size
 
         prev_dA = np.dot(dA, self.weights.T)
 
