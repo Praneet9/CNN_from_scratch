@@ -29,14 +29,33 @@ class Sequential:
         self.epochs = epochs
         self.batch_size = batch_size
 
-        # iterate for number of epochs
-        # take steps of n_samples / batch_size
-        # iterate forward through every layer
-        # compute cost
-        # print loss and accuracy
-        # iterate backward through every layer
-        # update all weights
+        # TODO - validations
 
+        for epoch in range(1, epochs):
+            idx = 0
+            batch_no = 0
+
+            if y.shape[1] % batch_size:
+                no_batches = (y.shape[1] // batch_size) + 1
+            else:
+                no_batches = y.shape[1] // batch_size
+
+            print(f"\nEpoch {idx+1}/{epochs}")
+            while idx <= y.shape[1]:
+                batch_no += 1
+
+                x_batch = x[idx:idx+self.batch_size]
+                y_batch = y[:, idx:idx+self.batch_size]
+
+                idx += self.batch_size
+                prev_act = x_batch.copy()
+                for layer in self.layers:
+                    prev_act = layer.forward(prev_act)
+
+                cost, dZ = self.loss_function(y_batch, prev_act)
+                print(f"Batch {batch_no}/{no_batches} Loss: {cost}")
+                for layer in reversed(self.layers):
+                    dZ = layer.backprop(dZ)
 
     def predict(self, x):
 
