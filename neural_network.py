@@ -41,6 +41,8 @@ class Sequential:
                 no_batches = y.shape[1] // batch_size
 
             print(f"\nEpoch {idx+1}/{epochs}")
+            loss = []
+            accuracies = []
             while idx <= y.shape[1]:
                 batch_no += 1
 
@@ -53,7 +55,14 @@ class Sequential:
                     prev_act = layer.forward(prev_act)
 
                 cost, dZ = self.loss_function(y_batch, prev_act)
-                print(f"Batch {batch_no}/{no_batches} Loss: {cost}")
+
+                loss.append(cost)
+                y_pred = prev_act.reshape(1, -1)
+                accuracy = np.mean(np.round(y_pred) == y_batch)
+                accuracies.append(accuracy)
+
+                print(f"Batch {batch_no}/{no_batches} Loss: {sum(loss)/len(loss)} "
+                      f"Accuracy: {sum(accuracies)/len(accuracies)}", end='\r')
                 for layer in reversed(self.layers):
                     dZ = layer.backprop(dZ)
 
