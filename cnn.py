@@ -6,7 +6,7 @@ from weights_initializers import init_weights
 
 class Conv:
 
-    def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=1, activation='relu',
+    def __init__(self, input_shape, n_filters=32, stride=1, kernel=3, padding=False, activation='relu',
                  weights='glorot_uniform', bias='zeros', weights_scale=0.05, bias_scale=0.05):
         if kernel % 2 == 0:
             raise ValueError('kernel cannot be even')
@@ -15,13 +15,16 @@ class Conv:
         self.input_channels = input_shape[-1]
         self.kernel = kernel
         self.stride = stride
-        self.padding = padding
+        if padding:
+            self.padding = self.kernel // 2
+        else:
+            self.padding = 0
         self.weights = init_weights(weights, shape=(kernel, kernel, input_shape[-1], n_filters),
                                    scale=weights_scale)
         self.bias = init_weights(bias, shape=(1, 1, 1, n_filters), scale=bias_scale)
         self.n_filters = n_filters
-        self.output_height = int(1 + ((self.input_height - kernel + 2 * padding) / stride))
-        self.output_width = int(1 + ((self.input_width - kernel + 2 * padding) / stride))
+        self.output_height = int(1 + ((self.input_height - kernel + 2 * self.padding) / stride))
+        self.output_width = int(1 + ((self.input_width - kernel + 2 * self.padding) / stride))
         self.output_shape = (None, self.output_height, self.output_width, self.n_filters)
         self.prev_act = None
         if activation == 'relu':
@@ -41,12 +44,15 @@ class Conv:
         return Z
 
     def add_padding(self, batch):
-        padded_batch = np.pad(batch, ((0, 0),
-                           (self.padding, self.padding),
-                           (self.padding, self.padding),
-                           (0, 0)),
-                   'constant')
-        return padded_batch
+        if self.padding:
+            padded_batch = np.pad(batch, ((0, 0),
+                               (self.padding, self.padding),
+                               (self.padding, self.padding),
+                               (0, 0)),
+                       'constant')
+            return padded_batch
+        else:
+            return batch
 
     def forward(self, prev_act):
         batch_size = prev_act.shape[0]
