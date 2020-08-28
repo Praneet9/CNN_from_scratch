@@ -42,7 +42,7 @@ class Sequential:
             else:
                 no_batches = y.shape[1] // batch_size
 
-            print(f"\nEpoch {idx+1}/{epochs}")
+            print(f"\nEpoch {epoch+1}/{epochs}")
 
             while idx <= y.shape[1]:
                 batch_no += 1
@@ -63,8 +63,12 @@ class Sequential:
 
                 print(f"Batch {batch_no}/{no_batches} loss: {sum(self.loss)/len(self.loss)} "
                       f"accuracy: {sum(self.accuracies)/len(self.accuracies)}", end='\r')
+
                 for layer in reversed(self.layers):
                     dZ = layer.backprop(dZ)
+
+            print(f"Batch {batch_no}/{no_batches} loss: {sum(self.loss) / len(self.loss)} "
+                  f"accuracy: {sum(self.accuracies) / len(self.accuracies)}", end='')
 
             if val_x is not None:
                 val_dict = self.evaluate(val_x, val_y)
@@ -73,7 +77,6 @@ class Sequential:
 
                 print(f" val_loss: {sum(self.val_loss)/len(self.val_loss)} "
                       f"val_accuracy: {sum(self.val_accuracies)/len(self.val_accuracies)}")
-
 
     def predict(self, x):
         for layer in self.layers:
