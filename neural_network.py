@@ -67,25 +67,9 @@ class Sequential:
                     dZ = layer.backprop(dZ)
 
             if val_x is not None:
-                idx = 0
-                batch_no = 0
-
-                while idx <= val_y.shape[1]:
-                    batch_no += 1
-
-                    x_batch = val_x[idx:idx+batch_size]
-                    y_batch = val_y[:, idx:idx+batch_size]
-
-                    idx += self.batch_size
-                    prev_act = x_batch.copy()
-                    prev_act = self.predict(prev_act)
-
-                    cost, _ = self.loss_function(y_batch, prev_act)
-
-                    self.val_loss.append(cost)
-                    y_pred = prev_act.reshape(1, -1)
-                    accuracy = np.mean(np.round(y_pred) == y_batch)
-                    self.val_accuracies.append(accuracy)
+                val_dict = self.evaluate(val_x, val_y)
+                self.val_loss.extend(val_dict['batch_loss'])
+                self.val_accuracies.extend(val_dict['batch_accuracy'])
 
                 print(f" val_loss: {sum(self.val_loss)/len(self.val_loss)} "
                       f"val_accuracy: {sum(self.val_accuracies)/len(self.val_accuracies)}")
@@ -120,5 +104,7 @@ class Sequential:
 
         return {
             'loss': sum(loss) / len(loss),
-            'accuracy': sum(accuracies) / len(accuracies)
+            'accuracy': sum(accuracies) / len(accuracies),
+            'batch_loss': loss,
+            'batch_accuracy': accuracies
         }
