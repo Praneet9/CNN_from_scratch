@@ -33,31 +33,33 @@ class Adam:
                 self.s.append(w_b.copy())
 
     def optimize(self, layers, gradients, batch_size, iteration):
-
-        for idx, layer in enumerate(layers):
-            if hasattr(layer, 'weights'):
+        optimizations = []
+        for idx in range(len(layers)):
+            if not hasattr(layers[idx], 'weights'):
+                optimizations.append([None, None])
                 continue
 
             # weights optimization
             g = gradients[idx][0] / batch_size
 
             self.v[idx]['weights'] = self.beta1 * self.v[idx]['weights'] + (1. - self.beta1) * g
-            self.s[idx]['weights'] = self.beta2 * self.s[idx]['weights'] * (1. - self.beta2) * np.square(g)
+            self.s[idx]['weights'] = self.beta2 * self.s[idx]['weights'] + (1. - self.beta2) * np.square(g)
 
-            v_bias_corr = self.v[idx]['weights'] / (1. - self.beta1 ** iteration)
-            sqr_bias_corr = self.s[idx]['weights'] / (1. - self.beta2 ** iteration)
+            v_bias_corr = self.v[idx]['weights'] / (1. - (self.beta1 ** iteration))
+            sqr_bias_corr = self.s[idx]['weights'] / (1. - (self.beta2 ** iteration))
 
-            adjustment = self.learning_rate * v_bias_corr / (np.sqrt(sqr_bias_corr) + self.eps)
-            layer.weights -= adjustment
+            weights_adjustment = self.learning_rate * (v_bias_corr / (np.sqrt(sqr_bias_corr) + self.eps))
 
             # bias optimization
             g = gradients[idx][1] / batch_size
 
             self.v[idx]['bias'] = self.beta1 * self.v[idx]['bias'] + (1. - self.beta1) * g
-            self.s[idx]['bias'] = self.beta2 * self.s[idx]['bias'] * (1. - self.beta2) * np.square(g)
+            self.s[idx]['bias'] = self.beta2 * self.s[idx]['bias'] + (1. - self.beta2) * np.square(g)
 
-            v_bias_corr = self.v[idx]['bias'] / (1. - self.beta1 ** iteration)
-            sqr_bias_corr = self.s[idx]['bias'] / (1. - self.beta2 ** iteration)
+            v_bias_corr = self.v[idx]['bias'] / (1. - (self.beta1 ** iteration))
+            sqr_bias_corr = self.s[idx]['bias'] / (1. - (self.beta2 ** iteration))
 
-            adjustment = self.learning_rate * v_bias_corr / (np.sqrt(sqr_bias_corr) + self.eps)
-            layer.bias -= adjustment
+            bias_adjustment = self.learning_rate * (v_bias_corr / (np.sqrt(sqr_bias_corr) + self.eps))
+
+            optimizations.append([weights_adjustment, bias_adjustment])
+        return optimizations
