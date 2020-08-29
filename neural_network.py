@@ -49,7 +49,7 @@ class Sequential:
 
             print(f"\nEpoch {epoch}/{epochs}")
 
-            while idx <= y.shape[1]:
+            while idx < y.shape[1]:
                 batch_no += 1
 
                 x_batch = x[idx:idx+self.batch_size]
@@ -103,7 +103,7 @@ class Sequential:
         idx = 0
         batch_no = 0
         loss, accuracies = [], []
-        while idx <= y.shape[1]:
+        while idx < y.shape[1]:
             batch_no += 1
 
             x_batch = x[idx:idx + self.batch_size]
