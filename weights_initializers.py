@@ -1,4 +1,5 @@
 import numpy as np
+np.random.seed(0)
 
 
 def init_weights(init_type, shape, scale=0.05):
