@@ -66,4 +66,4 @@ class Pooling:
                             average = np.ones(shape) * average
                             prev_dA[m, vertical_start:vertical_end, horizontal_start:horizontal_end, c] += average
 
-        return prev_dA
+        return prev_dA, [None, None]

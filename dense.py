@@ -32,16 +32,15 @@ class Dense:
         self.A = self.activation_fn(np.dot(prev_act, self.weights) + self.bias)
         return self.A
 
-    def backprop(self, dA, learning_rate=0.01):
-        batch_size = dA.shape[0]
-
+    def backprop(self, dA):
         dA = self.backward_activation_fn(dA, self.A)
-        dW = np.dot(self.prev_act.T, dA) / batch_size
-        db = dA.mean(axis=0, keepdims=True) / batch_size
+        dW = np.dot(self.prev_act.T, dA)
+        db = dA.mean(axis=0, keepdims=True)
 
         prev_dA = np.dot(dA, self.weights.T)
 
-        self.weights -= learning_rate * dW
-        self.bias -= learning_rate * db
+        return prev_dA, [dW, db]
 
-        return prev_dA
+    def update_params(self, opt_params):
+        self.weights -= opt_params[0]
+        self.bias -= opt_params[1]

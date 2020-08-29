@@ -23,4 +23,4 @@ class Flatten:
 
         prev_dA = dA.reshape((batch_size, self.input_height, self.input_width, self.input_channels))
 
-        return prev_dA
+        return prev_dA, [None, None]

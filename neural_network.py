@@ -1,12 +1,13 @@
 import numpy as np
 from loss import binary_cross_entropy
+from adam import Adam
 
 
 class Sequential:
 
     def __init__(self):
-
         self.loss_function = None
+        self.optimizer = None
         self.epochs = None
         self.layers = []
         self.batch_size = 4
@@ -16,13 +17,17 @@ class Sequential:
         self.val_accuracies = []
 
     def add(self, layer):
-
         self.layers.append(layer)
 
-    def compile(self, loss='binary_cross_entropy'):
-
+    def compile(self, loss='binary_cross_entropy', optimizer='adam'):
         if loss == 'binary_cross_entropy':
             self.loss_function = binary_cross_entropy
+        else:
+            raise ValueError(f"{loss} has not been added yet!")
+
+        if optimizer == 'adam':
+            self.optimizer = Adam()
+            self.optimizer.init_params(self.layers)
         else:
             raise ValueError(f"{loss} has not been added yet!")
 
@@ -32,7 +37,7 @@ class Sequential:
     def fit(self, x, y, epochs, batch_size, val_x=None, val_y=None):
         self.epochs = epochs
         self.batch_size = batch_size
-
+        iteration = 0
         for epoch in range(1, epochs):
             idx = 0
             batch_no = 0
@@ -42,7 +47,7 @@ class Sequential:
             else:
                 no_batches = y.shape[1] // batch_size
 
-            print(f"\nEpoch {epoch+1}/{epochs}")
+            print(f"\nEpoch {epoch}/{epochs}")
 
             while idx <= y.shape[1]:
                 batch_no += 1
@@ -64,8 +69,19 @@ class Sequential:
                 print(f"Batch {batch_no}/{no_batches} loss: {sum(self.loss)/len(self.loss)} "
                       f"accuracy: {sum(self.accuracies)/len(self.accuracies)}", end='\r')
 
+                gradients = []
                 for layer in reversed(self.layers):
-                    dZ = layer.backprop(dZ)
+                    dZ, gradient = layer.backprop(dZ)
+                    gradients.append(gradient)
+
+                iteration += 1
+                gradients.reverse()
+                optimizations = self.optimizer.optimize(self.layers, gradients, batch_size, iteration)
+                for i in range(len(self.layers)):
+                    if optimizations[i][0] is None:
+                        continue
+                    else:
+                        self.layers[i].update_params(optimizations[i])
 
             print(f"Batch {batch_no}/{no_batches} loss: {sum(self.loss) / len(self.loss)} "
                   f"accuracy: {sum(self.accuracies) / len(self.accuracies)}", end='')
@@ -84,7 +100,6 @@ class Sequential:
         return x
 
     def evaluate(self, x, y):
-
         idx = 0
         batch_no = 0
         loss, accuracies = [], []

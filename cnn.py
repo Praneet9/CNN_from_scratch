@@ -75,7 +75,7 @@ class Conv:
         self.A = self.activation_fn(Z)
         return self.A
 
-    def backprop(self, dA, learning_rate = 0.01):
+    def backprop(self, dA):
         batch_size = dA.shape[0]
 
         dA = self.backward_activation_fn(dA, self.A)
@@ -107,7 +107,9 @@ class Conv:
 
             prev_dA[m, :, :, :] = prev_dA_pad if self.padding == 0 else prev_dA_pad[self.padding:-self.padding,
                                                                                     self.padding:-self.padding, :]
-        self.weights -= learning_rate * dW
-        self.bias -= learning_rate * db
 
-        return prev_dA
+        return prev_dA, [dW, db]
+
+    def update_params(self, opt_params):
+        self.weights -= opt_params[0]
+        self.bias -= opt_params[1]
